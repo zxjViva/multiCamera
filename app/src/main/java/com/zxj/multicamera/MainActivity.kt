@@ -8,13 +8,15 @@ import android.widget.CheckBox
 import android.widget.LinearLayout
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
+import androidx.core.os.bundleOf
 import com.zxj.camerainfoselector.CameraInfoSelector
+import com.zxj.camerainfoselector.DuoCamera
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.logical_item.view.*
 import kotlinx.android.synthetic.main.physics_item.view.*
 
 class MainActivity : AppCompatActivity() {
-    private val checkedMap: HashMap<CheckBox, String> = hashMapOf()
+    private val checkedMap: HashMap<CheckBox, DuoCamera> = hashMapOf()
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
@@ -26,9 +28,20 @@ class MainActivity : AppCompatActivity() {
                 } else {
                     return@map null
                 }
+            }.filterNotNull()
+            val map: Bundle = bundleOf()
+            for (duoCamera in result) {
+                if (map.containsKey(duoCamera.logicalCameraId) && !duoCamera.physicalCameraIds.isNullOrEmpty()) {
+                    map.getStringArrayList(duoCamera.logicalCameraId)?.addAll(duoCamera.physicalCameraIds)
+                } else {
+                    map.putStringArrayList(duoCamera.logicalCameraId, arrayListOf<String>())
+                    if (!duoCamera.physicalCameraIds.isNullOrEmpty()) {
+                        map.getStringArrayList(duoCamera.logicalCameraId)?.addAll(duoCamera.physicalCameraIds)
+                    }
+                }
             }
             startActivity(Intent(this, CameraShowActivity::class.java).apply {
-                putExtra("cameras", result.toTypedArray())
+                putExtra("cameras", map)
             })
         }
     }
@@ -46,12 +59,12 @@ class MainActivity : AppCompatActivity() {
         info.forEach {
             val logicalItem = View.inflate(this, R.layout.logical_item, null) as LinearLayout
             logicalItem.logical_name.text = "logical id: ${it.cameraId} focal:${it.focalLengths} size:${it.size} facing:${it.lenFacing}"
-            checkedMap[logicalItem.logical_name] = "logical id: ${it.cameraId}"
+            checkedMap[logicalItem.logical_name] = DuoCamera(it.cameraId, null)
             container.addView(logicalItem)
             for (physicalCamera in it.physicalCameras) {
                 val physicsItem = View.inflate(this, R.layout.physics_item, null)
                 physicsItem.physics_name.text = "physics id: ${physicalCamera.cameraId} focal:${physicalCamera.focalLengths} size:${physicalCamera.size}"
-                checkedMap[physicsItem.physics_name] = "physics id: ${it.cameraId}"
+                checkedMap[physicsItem.physics_name] = DuoCamera(it.cameraId, setOf(physicalCamera.cameraId))
                 logicalItem.addView(physicsItem)
             }
         }

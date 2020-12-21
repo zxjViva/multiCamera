@@ -2,7 +2,7 @@ package com.zxj.camerainfoselector
 
 import android.util.SizeF
 
-class CameraInfo(val cameraId: String) {
+class LogicalCameraInfo(val cameraId: String) {
     var physicalCameras: MutableList<PhysicalCamera> = mutableListOf()
     var focalLengths = ""
     var size: SizeF? = SizeF(0f, 0f)
@@ -10,3 +10,5 @@ class CameraInfo(val cameraId: String) {
 }
 
 data class PhysicalCamera(val focalLengths: String, val cameraId: String, val size: SizeF?)
+
+data class DuoCamera(val logicalCameraId: String, val physicalCameraIds: Set<String>?)

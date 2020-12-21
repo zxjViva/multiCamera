@@ -4,8 +4,8 @@ import android.hardware.camera2.CameraCharacteristics
 import android.hardware.camera2.CameraManager
 
 class CameraInfoSelector(private val cameraManager: CameraManager) {
-    fun select(): List<CameraInfo> {
-        val cameraInfos = mutableListOf<CameraInfo>()
+    fun select(): List<LogicalCameraInfo> {
+        val cameraInfos = mutableListOf<LogicalCameraInfo>()
         for (id in cameraManager.cameraIdList) {
             val cameraCharacteristics = cameraManager.getCameraCharacteristics(id)
             val lenFacing = cameraCharacteristics.get(
@@ -17,7 +17,7 @@ class CameraInfoSelector(private val cameraManager: CameraManager) {
             val sensorSize = cameraCharacteristics.get(
                     CameraCharacteristics.SENSOR_INFO_PHYSICAL_SIZE
             )
-            val cameraInfo = CameraInfo(id)
+            val cameraInfo = LogicalCameraInfo(id)
             cameraInfos.add(cameraInfo)
             cameraInfo.size = sensorSize
             cameraInfo.focalLengths = focalLengths.joinToString()
